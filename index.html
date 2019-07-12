@@ -1,46 +1,96 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>You Talkin' To Me?</title>
-    </head>
-    <body>
-        <p>Heard: <span class="heard-output">none</span></p>
-        <script type="text/javascript">
-            window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-            window.SpeechRecognitionError = window.webkitSpeechRecognitionError || window.SpeechRecognitionError;
-            window.SpeechRecognitionEvent = window.webkitSpeechRecognitionEvent || window.SpeechRecognitionEvent;
-            window.SpeechGrammar = window.webkitSpeechGrammar || window.SpeechGrammar;
-            window.SpeechGrammarList = window.webkitSpeechGrammarList || window.SpeechGrammarList;
+	<head>
+		<title>You Talkin' To Me?</title>
+		<style type="text/css">
+			html,
+			body {
+				background-color: dimgray;
+				height: 100%;
+				margin: 0;
+				width: 100%;
+			}
+			P {
+				color: lightblue;
+				font-size: 10em;
+				text-align: center;
+			}
+			span.heard-output {
+				color: dodgerblue;
+				display: inline-block;
+				font-weight: bold;
+				transition: all 500ms;
+			}
+			span.glow {
+				text-shadow: 0 0 5px #ffffff;
+			}
+		</style>
+	</head>
+	<body>
+		<p>Did you say <span class="heard-output">something</span>?</p>
+		<script type="text/javascript">
+			window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+			// window.SpeechRecognitionError = window.webkitSpeechRecognitionError || window.SpeechRecognitionError;
+			// window.SpeechRecognitionEvent = window.webkitSpeechRecognitionEvent || window.SpeechRecognitionEvent;
+			// window.SpeechGrammar = window.webkitSpeechGrammar || window.SpeechGrammar;
+			// window.SpeechGrammarList = window.webkitSpeechGrammarList || window.SpeechGrammarList;
 
-            // window.SpeechSynthesis = window.webkitSpeechSynthesis || window.SpeechSynthesis;
-            // window.SpeechSynthesisEvent = window.webkitSpeechSynthesisEvent || window.SpeechSynthesisEvent;
-            // window.SpeechSynthesisErrorEvent = window.webkitSpeechSynthesisErrorEvent || window.SpeechSynthesisErrorEvent;
-            // window.SpeechSynthesisUtterance = window.webkitSpeechSynthesisUtterance || window.SpeechSynthesisUtterance;
+			// window.SpeechSynthesis = window.webkitSpeechSynthesis || window.SpeechSynthesis;
+			// window.SpeechSynthesisEvent = window.webkitSpeechSynthesisEvent || window.SpeechSynthesisEvent;
+			// window.SpeechSynthesisErrorEvent = window.webkitSpeechSynthesisErrorEvent || window.SpeechSynthesisErrorEvent;
+			// window.SpeechSynthesisUtterance = window.webkitSpeechSynthesisUtterance || window.SpeechSynthesisUtterance;
 
-            if ('SpeechRecognition' in window) {
-                console.log('// speech recognition API supported');
-            } else {
-                console.log('// speech recognition API not supported');
-            }
+			if ('SpeechRecognition' in window) {
+				console.log('// speech recognition API supported');
+			} else {
+				console.log('// speech recognition API not supported');
+			}
 
-            const recognition = new window.SpeechRecognition();
-            const speechRecognitionList = new SpeechGrammarList();
-            const heardOutput = document.querySelector('.heard-output');
+			const recognition = new window.SpeechRecognition();
+			// const speechRecognitionList = new SpeechGrammarList();
+			const heardOutput = document.querySelector('.heard-output');
 
-            recognition.continuous = true;
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 5;
+			const config = { attributes: true, childList: true, subtree: true };
 
-            recognition.start();
+			// Callback function to execute when mutations are observed
+			const callback = (mutationsList, observer) => {
+				for(var mutation of mutationsList) {
+					if (mutation.type == 'childList') {
+						heardOutput.classList.toggle('glow');
+						heardOutput.classList.toggle('glow');
+					}
+					else if (mutation.type == 'subtree') {
+						console.log('The subtree attribute was modified.');
+					}
+					else if (mutation.type == 'attributes') {
+						console.log('The ' + mutation.attributeName + ' attribute was modified.');
+					}
+				}
+			};
 
-            recognition.addEventListener('result', event => {
-                console.log('Raw Event', event)
-                const transcript = event.results[0][0].transcript;
-                console.log('You said: ', transcript);
-                heardOutput.textContent = transcript;
-            });
-            recognition.addEventListener('end', recognition.start);
-        </script>
-    </body>
+			// Create an observer instance linked to the callback function
+			const observer = new MutationObserver(callback);
+
+			// Start observing the target node for configured mutations
+			observer.observe(heardOutput, config);
+
+			// Later, you can stop observing
+			// observer.disconnect();
+
+			// recognition.continuous = true;
+			recognition.lang = 'en-US';
+			recognition.interimResults = false;
+			recognition.maxAlternatives = 5;
+
+			recognition.start();
+
+			recognition.addEventListener('result', event => {
+				console.log('Raw Event', event)
+				const transcript = event.results[0][0].transcript;
+				console.log('You said: ', transcript);
+				heardOutput.textContent = `"${transcript}"`;
+			});
+			recognition.addEventListener('end', recognition.start);
+		</script>
+	</body>
 </html>
